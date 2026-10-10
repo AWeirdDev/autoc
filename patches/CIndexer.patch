@@ -1,0 +1,24 @@
+--- ./llvm-project/clang/tools/libclang/CIndexer.cpp	2026-10-10 23:10:32.073821356 +0800
++++ ./llvm-project/clang/tools/libclang/CIndexer2.cpp	2026-10-11 00:44:15.490687815 +0800
+@@ -54,7 +54,7 @@
+   size_t BufSize = 2048u;
+   std::unique_ptr<char[]> Buf;
+   while (true) {
+-    Buf = std::make_unique<char []>(BufSize);
++    Buf = std::make_unique<char[]>(BufSize);
+     errno = 0;
+     int Ret = loadquery(L_GETXINFO, Buf.get(), (unsigned int)BufSize);
+     if (Ret != -1)
+@@ -102,6 +102,12 @@
+   if (!ResourcesPath.empty())
+     return ResourcesPath;
+ 
++#ifdef __EMSCRIPTEN__
++  // virtual-FS path
++  ResourcesPath = "/clang-resource";
++  return ResourcesPath;
++#endif
++
+   SmallString<128> LibClangPath;
+ 
+   // Find the location where this library lives (libclang.dylib).
