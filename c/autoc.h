@@ -5,7 +5,6 @@
 #ifndef AUTOC_H
 #define AUTOC_H
 
-#include <clang-c/CXErrorCode.h>
 #include <clang-c/Index.h>
 #include <stddef.h>
 

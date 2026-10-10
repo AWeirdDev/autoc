@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "clang-c/CXErrorCode.h"
-
 typedef struct {
     CXTranslationUnit translation_unit;
     CXIndex index;
