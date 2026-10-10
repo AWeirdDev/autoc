@@ -10,6 +10,7 @@ emsdk:
 
 patch-cindexer:
     patch llvm-project/clang/tools/libclang/CIndexer.cpp ./patches/CIndexer.patch
+    touch llvm-project/clang/tools/libclang/CIndexer.cpp
 
 build-llvm:
     cmake -S llvm-project/llvm -B build-native -G Ninja -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release
@@ -34,7 +35,9 @@ build-libclang:
     ninja -C build-wasm libclang.a
 
 build:
+    touch c/autoc.c
     LIBCLANG_WASM_DIR=./build-wasm/lib cargo build --bin wasm --release --target wasm32-unknown-emscripten
 
 dist:
-    cp ./target/wasm32-unknown-emscripten/release/wasm.{js,wasm} ./dist
+    cp ./target/wasm32-unknown-emscripten/release/wasm.* ./dist
+    rm ./dist/*.d
