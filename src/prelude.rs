@@ -29,15 +29,15 @@ impl Doc {
 
         // SAFETY: argv is short-lived, no need to preserve
         //         it dies after autoc_Doc_new()
-        let argv: Vec<*const c_char> = args.iter().map(|a| a.as_ptr()).collect();
+        let argv: Vec<*const c_char> = args.iter().map(|a| a.as_ptr() as _).collect();
 
         let doc = unsafe {
             autoc_Doc_new(
-                path.as_ptr(),
+                path.as_ptr() as _,
                 source.len() as _,
-                source.as_ptr(),
+                source.as_ptr() as _,
                 args.len() as _,
-                argv.as_ptr(),
+                argv.as_ptr() as _,
             )
         };
 
@@ -48,7 +48,7 @@ impl Doc {
     }
 
     pub fn update(&mut self, source: &str) -> Result<(), DocUpdateError> {
-        self.inner.buf = source.as_ptr();
+        self.inner.buf = source.as_ptr() as _;
         self.inner.len = source.len() as _;
 
         unsafe {
@@ -59,7 +59,7 @@ impl Doc {
         }
     }
 
-    pub fn code_complete(&mut self, line: u32, col: u32) -> Completions<'_> {
+    pub fn complete(&mut self, line: u32, col: u32) -> Completions<'_> {
         let raw = unsafe { autoc_Doc_code_complete(&mut self.inner, line, col) };
         Completions {
             inner: raw,

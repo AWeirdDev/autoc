@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <clang-c/Index.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -80,7 +81,7 @@ autoc_Completions autoc_Doc_code_complete(autoc_Doc *doc, unsigned line,
         doc->translation_unit, doc->path, line, column, &unsaved_file, 1,
         clang_defaultCodeCompleteOptions());
     if (!res) {
-        return (autoc_Completions){NULL};
+        return (autoc_Completions){NULL, 0};
     }
 
     clang_sortCodeCompletionResults(res->Results, res->NumResults);
@@ -245,3 +246,9 @@ void autoc_Completion_free(autoc_Completion c) {
 void autoc_Completions_dispose(autoc_Completions completions) {
     clang_disposeCodeCompleteResults(completions.inner);
 }
+
+// void emscripten_longjmp(uintptr_t env, int val) {
+//     (void)env;
+//     (void)val;
+//     abort();
+// }
