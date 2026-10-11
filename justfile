@@ -2,6 +2,7 @@ add-toolchain:
     rustup target add wasm32-unknown-emscripten
 
 emsdk:
+    #!/bin/sh
     git clone https://github.com/emscripten-core/emsdk.git
     cd emsdk
     ./emsdk install latest
