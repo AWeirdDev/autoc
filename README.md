@@ -10,7 +10,7 @@ Then, run:
 
 ```sh
 just add-toolchain # rust toolchain
-just emsdk # prepare emask
+just emsdk # prepare emsdk
 
 # read the output, choose your command
 # according to your terminal
@@ -25,4 +25,4 @@ just build && just dist
 just test-dist
 ```
 
-It's kind of complicated, but I guess it's worth it. I've already compiled the WASM version to `dist/` and uploaded to the repository, so you can use it directly.
+It's kind of complicated, but I guess it's worth it. I've already compiled the WASM version to `dist/` and uploaded it to the repository, so you can use it directly.
