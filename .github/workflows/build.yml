@@ -110,7 +110,7 @@ jobs:
             - name: Stage assets
               run: |
                   mkdir out
-                  mv dist/wasm.js dist/wasm.wasm out/
+                  mv js/wasm.js js/wasm.wasm out/
                   mv *.tgz out/
                   (cd out && sha256sum wasm.js wasm.wasm > SHA256SUMS)
                   cat out/SHA256SUMS
