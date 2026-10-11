@@ -132,8 +132,6 @@ jobs:
               run: |
                   {
                     echo "Built from ${GITHUB_SHA} (run ${GITHUB_RUN_ID})."
-                    echo
-                    cat out/versions.md
                   } > notes.md
                   if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
                     gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file notes.md
