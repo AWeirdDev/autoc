@@ -45,7 +45,7 @@ jobs:
                       llvm-project
                       build-native
                       build-wasm
-                  key: llvm-${{ steps.llvm.outputs.sha }}-${{ hashFiles('justfile', 'patches/**') }}
+                  key: llvm-${{ steps.llvm.outputs.sha }}
 
             - name: Fetch LLVM source
               if: steps.cache.outputs.cache-hit != 'true'
@@ -104,6 +104,7 @@ jobs:
 
             - name: Build JavaScript binding
               run: |
+                  cd js && bun i
                   just js-dist
 
             - name: Stage assets
