@@ -1,0 +1,144 @@
+name: build-wasm
+
+on:
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: Release tag
+                required: true
+                type: string
+            llvm_ref:
+                description: llvm-project git ref
+                required: false
+                default: release/19.x
+                type: string
+
+permissions: {}
+
+env:
+    HOST_LLVM_MAJOR: "19"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        # timeout-minutes: 360
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Get LLVM
+              id: llvm
+              env:
+                  LLVM_REF: ${{ inputs.llvm_ref }}
+              run: |
+                  sha=$(git ls-remote https://github.com/llvm/llvm-project.git "refs/heads/$LLVM_REF" "refs/tags/$LLVM_REF" | head -n1 | cut -f1)
+                  test -n "$sha" || { echo "cannot resolve $LLVM_REF"; exit 1; }
+                  echo "sha=$sha" >> "$GITHUB_OUTPUT"
+                  echo "llvm-project $LLVM_REF -> $sha"
+
+            - name: Cache LLVM source
+              id: cache
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      llvm-project
+                      build-native
+                      build-wasm
+                  key: llvm-${{ steps.llvm.outputs.sha }}-${{ hashFiles('justfile', 'patches/**') }}
+
+            - name: Fetch LLVM source
+              if: steps.cache.outputs.cache-hit != 'true'
+              env:
+                  SHA: ${{ steps.llvm.outputs.sha }}
+              run: |
+                  git init llvm-project
+                  git -C llvm-project fetch --depth 1 https://github.com/llvm/llvm-project.git "$SHA"
+                  git -C llvm-project checkout FETCH_HEAD
+
+            - name: Install host tools (apt)
+              run: |
+                  wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc >/dev/null
+                  echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-${HOST_LLVM_MAJOR} main" | sudo tee /etc/apt/sources.list.d/llvm.list
+                  sudo apt-get update
+                  sudo apt-get install -y ninja-build cmake patch \
+                    "libclang-${HOST_LLVM_MAJOR}-dev" "clang-${HOST_LLVM_MAJOR}"
+                  ls "/usr/lib/llvm-${HOST_LLVM_MAJOR}/lib/clang/${HOST_LLVM_MAJOR}/include" | head -3
+
+            - uses: taiki-e/install-action@just
+
+            - name: Rust toolchain
+              run: |
+                  rustup update stable
+                  rustup default stable
+                  just add-toolchain
+
+            - name: Emscripten
+              run: |
+                  git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$HOME/emsdk"
+                  cd "$HOME/emsdk"
+                  ./emsdk install latest
+                  ./emsdk activate latest
+                  echo "EMSDK=$HOME/emsdk" >> "$GITHUB_ENV"
+                  echo "$HOME/emsdk" >> "$GITHUB_PATH"
+                  echo "$HOME/emsdk/upstream/emscripten" >> "$GITHUB_PATH"
+
+            - name: Patch CIndexer
+              run: |
+                  if ! grep -q __EMSCRIPTEN__ llvm-project/clang/tools/libclang/CIndexer.cpp; then
+                    just patch-cindexer
+                  fi
+
+            - name: Build LLVM for wasm
+              if: steps.cache.outputs.cache-hit != 'true'
+              run: |
+                  just build-llvm
+                  just build-libclang
+
+            - name: Build autoc wasm
+              run: |
+                  mkdir -p dist
+                  just build
+                  just dist
+
+            - name: Stage assets
+              run: |
+                  mkdir out
+                  cp dist/wasm.js dist/wasm.wasm out/
+                  (cd out && sha256sum wasm.js wasm.wasm > SHA256SUMS)
+                  cp versions.md out/versions.md
+                  cat out/SHA256SUMS
+
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: autoc-wasm
+                  path: out/
+                  if-no-files-found: error
+
+    release:
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/download-artifact@v4
+              with:
+                  name: autoc-wasm
+                  path: out
+
+            - name: Update release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  TAG: ${{ inputs.tag }}
+              run: |
+                  {
+                    echo "Built from ${GITHUB_SHA} (run ${GITHUB_RUN_ID})."
+                    echo
+                    cat out/versions.md
+                  } > notes.md
+                  if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+                    gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file notes.md
+                  else
+                    gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md
+                  fi
+                  gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber out/wasm.js out/wasm.wasm out/SHA256SUMS
