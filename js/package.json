@@ -1,11 +1,19 @@
 {
     "name": "autoc",
+    "description": "Autocomplete for C/CX projects",
+    "version": "0.0.1",
     "module": "index.ts",
     "type": "module",
     "devDependencies": {
-        "@types/bun": "latest"
+        "@types/bun": "latest",
+        "rolldown": "^1.2.13",
+        "rolldown-plugin-dts": "^0.28.7"
     },
     "peerDependencies": {
         "typescript": "^7"
+    },
+    "scripts": {
+        "build:clean": "rm -rf ./dist/*",
+        "build:browser": "rolldown -c ./rolldown.config.js"
     }
 }

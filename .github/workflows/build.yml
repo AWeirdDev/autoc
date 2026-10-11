@@ -99,12 +99,18 @@ jobs:
               run: |
                   mkdir -p dist
                   just build
-                  just dist
+
+            - uses: oven-sh/setup-bun@v2
+
+            - name: Build JavaScript binding
+              run: |
+                  just js-dist
 
             - name: Stage assets
               run: |
                   mkdir out
-                  cp dist/wasm.js dist/wasm.wasm out/
+                  mv dist/wasm.js dist/wasm.wasm out/
+                  mv *.tgz out/
                   (cd out && sha256sum wasm.js wasm.wasm > SHA256SUMS)
                   cat out/SHA256SUMS
 

@@ -7,7 +7,8 @@ emsdk:
     cd emsdk
     ./emsdk install latest
     ./emsdk activate latest
-    echo "fish: . ./emsdk_env.fish OR sh: source ./emsdk_env.sh"
+    @echo fish:  . ./emsdk_env.fish
+    @echo sh:    source ./emsdk_env.sh
 
 patch-cindexer:
     patch llvm-project/clang/tools/libclang/CIndexer.cpp ./patches/CIndexer.patch
@@ -39,9 +40,20 @@ build:
     touch c/autoc.c
     LIBCLANG_WASM_DIR=./build-wasm/lib cargo build --bin wasm --features wasm --release --target wasm32-unknown-emscripten
 
-dist:
-    cp ./target/wasm32-unknown-emscripten/release/wasm.* ./dist
-    rm ./dist/*.d
+js-dist:
+    #!/bin/sh
+    set -xe
+    cp ./target/wasm32-unknown-emscripten/release/wasm.* ./js
+    rm ./js/*.d  # we dont need this
+    cd js
+    bun run build:clean && bun run build:browser
+    TARBALL=$(bun pm pack --quiet)
+    cd ../
+    rm -rf ./dist/*
+    mv ./js/dist .
+    mv ./js/$TARBALL .
+    echo "dist moved to ./dist"
+    echo "tarball moved to ./$TARBALL"
 
 test-c:
     cc -Wall -Wextra \
@@ -54,8 +66,5 @@ test-c:
         -Wl,-rpath,/usr/lib/llvm-19/lib
     ./example
     rm ./example
-
-test-dist:
-    node ./dist/example.js
 
 # . ~/items/emsdk/emsdk_env.fish
