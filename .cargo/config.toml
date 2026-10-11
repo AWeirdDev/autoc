@@ -2,5 +2,5 @@
 linker = "em++"
 rustflags = [
   "-C",
-  "link-args=-sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=4GB -sSTACK_SIZE=8388608 -sMODULARIZE=1 -sEXPORT_NAME=createModule -sENVIRONMENT=web,worker,node -sEXPORTED_FUNCTIONS=_doc_open,_doc_update,_doc_complete,_doc_dispose,_malloc,_free -sEXPORTED_RUNTIME_METHODS=UTF8ToString,stringToNewUTF8,FS",
+  "link-args=-sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=4GB -sSTACK_SIZE=8388608 -sMODULARIZE=1 -sEXPORT_NAME=createModule -sENVIRONMENT=web,worker,node -sEXPORTED_FUNCTIONS=_doc_open,_doc_update,_doc_complete,_doc_dispose,_malloc,_free -sEXPORTED_RUNTIME_METHODS=UTF8ToString,stringToNewUTF8,FS,HEAPU8",
 ]
