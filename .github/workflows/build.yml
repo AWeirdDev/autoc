@@ -106,7 +106,6 @@ jobs:
                   mkdir out
                   cp dist/wasm.js dist/wasm.wasm out/
                   (cd out && sha256sum wasm.js wasm.wasm > SHA256SUMS)
-                  cp versions.md out/versions.md
                   cat out/SHA256SUMS
 
             - uses: actions/upload-artifact@v4
