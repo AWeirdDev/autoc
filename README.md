@@ -40,7 +40,7 @@ just emsdk # prepare emsdk
 # read the output, choose your command
 # according to your terminal
 
-just patch-indexer # patch for wasm
+just patch-cindexer # patch for wasm
 just build-llvm && just build-libclang
 
 # and then our library
