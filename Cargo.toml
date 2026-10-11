@@ -4,11 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-default = []
-wasm = []
+default = ["wasm"]
+wasm = ["dep:serde_json", "dep:serde"]
 
 [dependencies]
 thiserror = "2.0.21"
+serde_json = { version = "1.0.152", optional = true }
+serde = { version = "1.0.229", optional = true, features = ["derive"] }
 
 [build-dependencies]
 bindgen = "0.73.2"

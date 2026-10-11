@@ -36,13 +36,13 @@ int main() { Point p; p.mo
     );
     const leakedFlags = module.stringToNewUTF8(flags);
 
-    const result = module._doc_open(leakedSrc, leakedFlags);
-    if (result !== 0) {
-        throw new Error("failed to open doc, status=" + result);
+    const docId = module._doc_open(leakedSrc, leakedFlags);
+    if (docId !== 0) {
+        throw new Error("failed to open doc, status=" + docId);
     }
 
     const col = Buffer.byteLength("int main() { Point p; p.mo") + 1;
-    const ptr = module._complete(2, col);
+    const ptr = module._doc_complete(docId, 2, col);
     console.log(module.UTF8ToString(ptr));
 
     module._free(ptr);

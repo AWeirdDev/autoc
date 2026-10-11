@@ -174,6 +174,11 @@ unsafe fn cstr_to_string(p: *const c_char) -> String {
 }
 
 #[derive(Debug, Clone)]
+#[cfg_attr(
+    feature = "wasm",
+    derive(serde::Serialize),
+    serde(tag = "type", content = "data", rename_all = "lowercase")
+)]
 pub enum CompletionChunk {
     TypedText(String),
     Text(String),
@@ -186,6 +191,7 @@ pub enum CompletionChunk {
 }
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "wasm", derive(serde::Serialize))]
 pub struct Completion {
     pub chunks: Vec<CompletionChunk>,
     pub priority: u32,
@@ -194,11 +200,12 @@ pub struct Completion {
 }
 
 #[derive(Debug)]
+#[repr(i8)]
 pub enum DocUpdateError {
-    AstReadError,
-    Crashed,
-    Failure,
-    InvalidArguments,
+    AstReadError = -1,
+    Crashed = -2,
+    Failure = -3,
+    InvalidArguments = -4,
 }
 
 impl From<CXErrorCode> for DocUpdateError {
