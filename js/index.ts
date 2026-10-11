@@ -1,5 +1,3 @@
-import type { CXCursorKind } from "./cursorKind";
-
 interface EmscriptenFS {
     writeFile(path: string, data: string | ArrayBufferView): void;
     mkdirTree(path: string): void;
@@ -38,7 +36,7 @@ export type CompletionChunk =
 export interface Completion {
     chunks: CompletionChunk[];
     priority: number;
-    cursor_kind: CXCursorKind;
+    cursor_kind: number;
     brief: string | null;
 }
 
