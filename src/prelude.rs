@@ -7,10 +7,10 @@ use std::{
 // lol fight me if you hate this
 use crate::sys::{
     CXCursorKind, CXError_ASTReadError, CXError_Crashed, CXError_Failure, CXError_InvalidArguments,
-    CXError_Success, CXErrorCode, autoc_Completion, autoc_Completion_Chunk,
-    autoc_Completion_Chunk_CurrentParam, autoc_Completion_Chunk_Informative,
-    autoc_Completion_Chunk_Optional, autoc_Completion_Chunk_Placeholder,
-    autoc_Completion_Chunk_Punct, autoc_Completion_Chunk_ResultType, autoc_Completion_Chunk_Text,
+    CXErrorCode, autoc_Completion, autoc_Completion_Chunk, autoc_Completion_Chunk_CurrentParam,
+    autoc_Completion_Chunk_Informative, autoc_Completion_Chunk_Optional,
+    autoc_Completion_Chunk_Placeholder, autoc_Completion_Chunk_Punct,
+    autoc_Completion_Chunk_ResultType, autoc_Completion_Chunk_Text,
     autoc_Completion_Chunk_TypedText, autoc_Completion_Chunks, autoc_Completions,
     autoc_Completions_dispose, autoc_Completions_next, autoc_Doc, autoc_Doc_code_complete,
     autoc_Doc_dispose, autoc_Doc_new, autoc_Doc_reparse,
@@ -24,12 +24,16 @@ pub struct Doc {
 unsafe impl Send for Doc {}
 
 impl Doc {
-    pub fn new(path: &str, source: &str, args: &[&str]) -> Result<Self, std::ffi::NulError> {
+    pub fn new(path: &str, source: &str, args: &[&str]) -> Result<Self, DocError> {
         let path = CString::new(path)?;
 
         // SAFETY: argv is short-lived, no need to preserve
         //         it dies after autoc_Doc_new()
-        let argv: Vec<*const c_char> = args.iter().map(|a| a.as_ptr() as _).collect();
+        let cargs: Vec<CString> = args
+            .iter()
+            .map(|arg| CString::new(*arg))
+            .collect::<Result<Vec<_>, std::ffi::NulError>>()?;
+        let argv: Vec<*const c_char> = cargs.iter().map(|a| a.as_ptr()).collect();
 
         let doc = unsafe {
             autoc_Doc_new(
@@ -40,6 +44,12 @@ impl Doc {
                 argv.as_ptr() as _,
             )
         };
+        if doc.translation_unit.is_null() {
+            unsafe {
+                autoc_Doc_dispose(doc);
+            }
+            return Err(DocError::ParseFailed);
+        }
 
         Ok(Self {
             inner: doc,
@@ -185,7 +195,6 @@ pub struct Completion {
 
 #[derive(Debug)]
 pub enum DocUpdateError {
-    Success,
     AstReadError,
     Crashed,
     Failure,
@@ -196,7 +205,6 @@ impl From<CXErrorCode> for DocUpdateError {
     fn from(value: CXErrorCode) -> Self {
         #[allow(non_upper_case_globals)]
         match value {
-            CXError_Success => Self::Success,
             CXError_Failure => Self::Failure,
             CXError_Crashed => Self::Crashed,
             CXError_InvalidArguments => Self::InvalidArguments,
@@ -204,4 +212,13 @@ impl From<CXErrorCode> for DocUpdateError {
             _ => unreachable!(),
         }
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum DocError {
+    #[error(transparent)]
+    NulInStr(#[from] std::ffi::NulError),
+
+    #[error("failed to parse")]
+    ParseFailed,
 }

@@ -36,8 +36,25 @@ build-libclang:
 
 build:
     touch c/autoc.c
-    LIBCLANG_WASM_DIR=./build-wasm/lib cargo build --bin wasm --release --target wasm32-unknown-emscripten
+    LIBCLANG_WASM_DIR=./build-wasm/lib cargo build --bin wasm --features wasm --release --target wasm32-unknown-emscripten
 
 dist:
     cp ./target/wasm32-unknown-emscripten/release/wasm.* ./dist
     rm ./dist/*.d
+
+test-c:
+    cc -Wall -Wextra \
+        -I/usr/lib/llvm-19/include \
+        -Ic \
+        c/example.c c/autoc.c \
+        -o example \
+        -L/usr/lib/llvm-19/lib \
+        -lclang \
+        -Wl,-rpath,/usr/lib/llvm-19/lib
+    ./example
+    rm ./example
+
+test-dist:
+    node ./dist/example.js
+
+# . ~/items/emsdk/emsdk_env.fish

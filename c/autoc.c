@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <clang-c/Index.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -27,13 +28,19 @@ autoc_Doc autoc_Doc_new(const char *file, unsigned long len, const char *buf,
     CXIndex idx = clang_createIndex(/* excludeDeclarationsFromPCH */ 0,
                                     /* displayDiagnostics */ 0);
 
+    struct CXUnsavedFile unsaved = {
+        .Filename = file, .Contents = buf, .Length = len};
+
     unsigned parse_opts =
         CXTranslationUnit_PrecompiledPreamble |
         CXTranslationUnit_CacheCompletionResults |
         CXTranslationUnit_IncludeBriefCommentsInCodeCompletion;
 
-    CXTranslationUnit tu =
-        clang_parseTranslationUnit(idx, file, args, argc, NULL, 0, parse_opts);
+    CXTranslationUnit tu;
+    enum CXErrorCode result = clang_parseTranslationUnit2(
+        idx, file, args, argc, &unsaved, 1, parse_opts, &tu);
+    if (result != CXError_Success)
+        fprintf(stderr, "parse failed: CXErrorCode=%d\n", result);
 
     return (autoc_Doc){.translation_unit = tu,
                        .index = idx,
