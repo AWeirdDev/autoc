@@ -75,13 +75,13 @@ jobs:
 
             - name: Emscripten
               run: |
-                  git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$HOME/emsdk"
-                  cd "$HOME/emsdk"
+                  git clone --depth 1 https://github.com/emscripten-core/emsdk.git emsdk
+                  cd ./emsdk
                   ./emsdk install latest
                   ./emsdk activate latest
-                  echo "EMSDK=$HOME/emsdk" >> "$GITHUB_ENV"
-                  echo "$HOME/emsdk" >> "$GITHUB_PATH"
-                  echo "$HOME/emsdk/upstream/emscripten" >> "$GITHUB_PATH"
+                  echo "EMSDK=$(realpath ./emsdk)" >> "$GITHUB_ENV"
+                  echo "$(realpath ./emsdk)" >> "$GITHUB_PATH"
+                  echo "$(realpath ./emsdk/upstream/emscripten)" >> "$GITHUB_PATH"
 
             - name: Patch CIndexer
               run: |
