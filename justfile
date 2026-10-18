@@ -110,8 +110,9 @@ test-c:
 
 # Dev mode (after init)
 dev:
-    touch c/autoc.c
     just build-autoc
+    cp ./target/wasm32-unknown-emscripten/release/wasm.* ./js
+    rm ./js/*.d  # we dont need this
 
 # Cleans the whole repo for any builds, emsdk, etc.
 clean:
