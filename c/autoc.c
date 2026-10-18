@@ -42,6 +42,19 @@ autoc_Doc autoc_Doc_new(const char *file, unsigned long len, const char *buf,
     if (result != CXError_Success)
         fprintf(stderr, "parse failed: CXErrorCode=%d\n", result);
 
+    CXDiagnosticSet diagnostics = clang_getDiagnosticSetFromTU(tu);
+    size_t n_diagnostics = clang_getNumDiagnosticsInSet(diagnostics);
+    for (size_t i = 0; i < n_diagnostics; i++) {
+        CXDiagnostic diagnostic = clang_getDiagnostic(tu, i);
+        CXString formatted = clang_formatDiagnostic(
+            diagnostic, clang_defaultDiagnosticDisplayOptions());
+        printf("%s\n", clang_getCString(formatted));
+        clang_disposeString(formatted);
+
+        clang_disposeDiagnostic(diagnostic);
+    }
+    clang_disposeDiagnosticSet(diagnostics);
+
     return (autoc_Doc){.translation_unit = tu,
                        .index = idx,
                        .path = file,
@@ -84,7 +97,8 @@ autoc_Completions autoc_Doc_code_complete(autoc_Doc *doc, unsigned line,
         .Filename = doc->path, .Contents = doc->buf, .Length = doc->len};
     CXCodeCompleteResults *res = clang_codeCompleteAt(
         doc->translation_unit, doc->path, line, column, &unsaved_file, 1,
-        clang_defaultCodeCompleteOptions());
+        clang_defaultCodeCompleteOptions() |
+            CXCodeComplete_IncludeBriefComments);
     if (!res) {
         return (autoc_Completions){NULL, 0};
     }

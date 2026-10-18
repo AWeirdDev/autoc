@@ -154,11 +154,21 @@ export class Doc {
 
 namespace initModule {
     interface InputFile {
+        /**
+         * The file path.
+         */
         path: string;
+
+        /**
+         * The file data.
+         */
         data: string | ArrayBufferView;
     }
+    type InputFiles = InputFile[];
 
-    export type InputFiles = InputFile[];
+    export interface InitOptions {
+        files?: InputFiles;
+    }
 }
 
 /**
@@ -167,20 +177,21 @@ namespace initModule {
  * The provided files will be put into the included headers
  * for clang to look for.
  */
-export async function initModule(files?: initModule.InputFiles) {
+export async function initModule(options?: initModule.InitOptions) {
     const module = await // @ts-ignore
     (await import("./wasm")).default();
     MODULE = module as EmscriptenModule;
 
     MODULE.FS.mkdirTree(VIRTUAL_FS);
+
+    const { files } = options || {};
     if (files) {
         for (const { path, data } of files) {
-            MODULE.FS.writeFile(
+            const virtualPath =
                 VIRTUAL_FS +
-                    "/" +
-                    (path.startsWith("/") ? path.slice(1) : path),
-                data,
-            );
+                "/" +
+                (path.startsWith("/") ? path.slice(1) : path);
+            MODULE.FS.writeFile(virtualPath, data);
         }
     }
 }
