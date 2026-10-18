@@ -111,4 +111,10 @@ dev:
     touch c/autoc.c
     just build-autoc
 
+# Cleans the whole repo for any builds, emsdk, etc.
+clean:
+    rm -rf ./build-native ./build-wasm ./dist ./llvm-project ./emsdk
+    rm -f "$(ls *.tgz 2>/dev/null)"
+    cargo clean
+
 # . ~/items/emsdk/emsdk_env.fish
