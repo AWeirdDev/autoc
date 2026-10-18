@@ -34,20 +34,15 @@ You need to first download LLVM source as `llvm-project`, with CMake, Ninja, Ems
 Then, run:
 
 ```sh
-just add-toolchain # rust toolchain
-just emsdk # prepare emsdk
+# First, initialize your environment (takes a while)
+# You can see the output messages to see what the
+# script is doing
+just init
 
-# read the output, choose your command
-# according to your terminal
+# After that, use this command whenever you're done
+# with some development
+just dev
 
-just patch-cindexer # patch for wasm
-just build-llvm && just build-libclang
-
-# and then our library
-just build && just dist
-
-# test the dist/
-just test-dist
+# If you need JavaScript bindings, use this
+just js-dist
 ```
-
-It's kind of complicated, but I guess it's worth it. I've already compiled the WASM version to `dist/` and uploaded it to the repository, so you can use it directly.

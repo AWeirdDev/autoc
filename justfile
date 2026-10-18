@@ -1,14 +1,42 @@
+init:
+    @echo "=====> adding rust toolchain"
+    just add-toolchain
+
+    @echo "=====> getting emsdk, llvm"
+    just get-emsdk & just get-llvm
+    wait
+
+    @echo "=====> patching CIndexer.h for wasm"
+    just patch-cindexer
+
+    @echo "=====> building llvm (native, wasm)"
+    just build-llvm
+
+    @echo "=====> building libclang"
+    just build-libclang
+
+    @echo "=====> building autoc"
+    just build-autoc
+
+    @echo "=====> done."
+    @echo "       after init, you can use \`just dev\` whenever."
+
 add-toolchain:
     rustup target add wasm32-unknown-emscripten
 
-emsdk:
-    #!/bin/sh
-    git clone https://github.com/emscripten-core/emsdk.git
-    cd emsdk
-    ./emsdk install latest
-    ./emsdk activate latest
+get-emsdk:
+    git -C emsdk fetch --depth 1 https://github.com/emscripten-core/emsdk.git
+    ./emsdk/emsdk install latest
+    ./emsdk/emsdk activate latest
     @echo fish:  . ./emsdk_env.fish
     @echo sh:    source ./emsdk_env.sh
+
+get-llvm:
+    # release/19.x
+    git init llvm-project
+    git -C llvm-project fetch --depth 1 https://github.com/llvm/llvm-project.git \
+        "$(git ls-remote https://github.com/llvm/llvm-project.git "refs/heads/release/19.x" "refs/tags/release/19.x" | head -n1 | cut -f1)"
+    git -C llvm-project checkout FETCH_HEAD
 
 patch-cindexer:
     patch llvm-project/clang/tools/libclang/CIndexer.cpp ./patches/CIndexer.patch
@@ -36,9 +64,11 @@ build-llvm:
 build-libclang:
     ninja -C build-wasm libclang.a
 
-build:
-    touch c/autoc.c
-    LIBCLANG_WASM_DIR=./build-wasm/lib cargo build --bin wasm --features wasm --release --target wasm32-unknown-emscripten
+build-autoc:
+    cd emsdk && . ./emsdk_env.sh \
+        && cd ../ \
+        && LIBCLANG_WASM_DIR=./build-wasm/lib \
+           cargo build --bin wasm --features wasm --release --target wasm32-unknown-emscripten
 
 js-dist:
     #!/bin/sh
@@ -52,8 +82,7 @@ js-dist:
     rm -rf ./dist/*
     mv ./js/dist .
     mv ./js/$TARBALL .
-    echo "dist moved to ./dist"
-    echo "tarball moved to ./$TARBALL"
+    mv ./js/*.wasm ./dist
 
 test-c:
     cc -Wall -Wextra \
@@ -66,5 +95,9 @@ test-c:
         -Wl,-rpath,/usr/lib/llvm-19/lib
     ./example
     rm ./example
+
+dev:
+    touch c/autoc.c
+    just build-autoc
 
 # . ~/items/emsdk/emsdk_env.fish
