@@ -1,16 +1,18 @@
-import { Doc, initModule } from ".";
-import fs from "fs";
+// DEPRECATED for now
 
-const source = `struct Point { int x; int y; void move69(int dx, int dy = 0); };
-int main() { Point p; p.mo
-}
-`;
+// import { Doc, initModule } from ".";
+// import fs from "fs";
 
-await initModule();
+// const source = `struct Point { int x; int y; void move69(int dx, int dy = 0); };
+// int main() { Point p; p.mo
+// }
+// `;
 
-using doc = new Doc({
-    source,
-    flags: ["-x", "c++", "-std=c++20", "--target=x86_64-unknown-linux-gnu"],
-});
+// await initModule();
 
-console.log(doc.complete(2, 26)[0]!.chunks);
+// using doc = new Doc({
+//     source,
+//     flags: ["-x", "c++", "-std=c++20", "--target=x86_64-unknown-linux-gnu"],
+// });
+
+// console.log(doc.complete(2, 26)[0]!.chunks);
