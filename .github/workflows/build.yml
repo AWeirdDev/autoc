@@ -109,16 +109,13 @@ jobs:
 
             - name: Stage assets
               run: |
-                  mkdir out
-                  mv js/wasm.js js/wasm.wasm out/
-                  mv *.tgz out/
-                  (cd out && sha256sum wasm.js wasm.wasm > SHA256SUMS)
-                  cat out/SHA256SUMS
+                  (cd dist && sha256sum $(ls .) > SHA256SUMS)
+                  cat dist/SHA256SUMS
 
             - uses: actions/upload-artifact@v4
               with:
                   name: autoc-wasm
-                  path: out/
+                  path: dist/
                   if-no-files-found: error
 
     release:
@@ -145,4 +142,4 @@ jobs:
                   else
                     gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md
                   fi
-                  gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber out/wasm.js out/wasm.wasm out/SHA256SUMS
+                  gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber $(ls dist)
