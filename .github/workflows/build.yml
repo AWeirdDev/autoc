@@ -98,7 +98,7 @@ jobs:
             - name: Build autoc wasm
               run: |
                   mkdir -p dist
-                  just build
+                  just build-autoc
 
             - uses: oven-sh/setup-bun@v2
 
