@@ -142,4 +142,5 @@ jobs:
                   else
                     gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md
                   fi
-                  gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber $(ls dist)
+                  cd dist
+                  gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber $(ls .)
