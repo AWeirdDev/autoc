@@ -28,7 +28,9 @@ add-toolchain:
 
 # Gets emsdk to ./emsdk
 get-emsdk:
+    git init emsdk
     git -C emsdk fetch --depth 1 https://github.com/emscripten-core/emsdk.git
+    git -C emsdk checkout FETCH_HEAD
     ./emsdk/emsdk install latest
     ./emsdk/emsdk activate latest
     @echo fish:  . ./emsdk_env.fish
