@@ -5,17 +5,17 @@ fn main() {
 
     let inc = format!("{host_root}/include");
 
-    cc::Build::new()
-        .file("c/autoc.c")
-        .include(&inc)
-        .flag_if_supported("-std=gnu11")
-        .compile("autoc");
+    // cc::Build::new()
+    //     .file("c/autoc.c")
+    //     .include(&inc)
+    //     .flag_if_supported("-std=gnu11")
+    //     .compile("autoc");
 
     let mut bindgen_builder = bindgen::Builder::default()
-        .header("c/autoc.h")
+        .header("clang.h")
         .clang_arg(format!("-I{inc}"))
-        .allowlist_function("autoc_.*")
-        .allowlist_type("autoc_.*")
+        .allowlist_function("clang_.*")
+        .allowlist_type("CX.*")
         .prepend_enum_name(false)
         .derive_debug(false)
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()));
@@ -23,7 +23,7 @@ fn main() {
     let is_wasm = env::var("TARGET").unwrap() == "wasm32-unknown-emscripten";
 
     if is_wasm {
-        let emsdk = env::var("EMSDK").expect("source emsdk_env.sh");
+        let emsdk = env::var("EMSDK").expect("no emsdk environment found");
         bindgen_builder = bindgen_builder
             .clang_arg("--target=wasm32-unknown-emscripten")
             .clang_arg(format!(
@@ -58,7 +58,7 @@ fn main() {
         println!("cargo:rustc-link-arg=-Wl,-rpath,{lib}");
     }
 
-    println!("cargo:rerun-if-changed=c/autoc.c");
+    println!("cargo:rerun-if-changed=c/clang.c");
     println!("cargo:rerun-if-env-changed=LLVM_ROOT");
     println!("cargo:rerun-if-env-changed=LIBCLANG_WASM_DIR");
 }

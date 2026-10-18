@@ -67,7 +67,7 @@ build-libclang:
 build-autoc:
     cd emsdk && . ./emsdk_env.sh \
         && cd ../ \
-        && LIBCLANG_WASM_DIR=./build-wasm/lib \
+        && LIBCLANG_WASM_DIR=$(realpath ./build-wasm/lib) \
            cargo build --bin wasm --features wasm --release --target wasm32-unknown-emscripten
 
 js-dist:

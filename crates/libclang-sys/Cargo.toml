@@ -1,0 +1,16 @@
+[package]
+name = "libclang-sys"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.73.2"
+cc = "1.7.0"
+
+# some code blocks are actually written in C/C++
+# which confuses Cargo because the language isn't even
+# marked, so we'll just skip all doctests lol stupid bindgen
+[lib]
+doctest = false

@@ -1,5 +1,8 @@
 /*
     autoc.h - Interface for C++/CX autocompletion.
+
+    Note: this is **DEPRECATED**; It's here mainly for reference reasons.
+          Don't blame me for not using git for version control.
  */
 
 #ifndef AUTOC_H
