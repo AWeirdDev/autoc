@@ -1,3 +1,4 @@
+# Initializes the environment
 init:
     @echo "=====> adding rust toolchain"
     just add-toolchain
@@ -21,9 +22,11 @@ init:
     @echo "=====> done."
     @echo "       after init, you can use \`just dev\` whenever."
 
+# Adds a Rust toolchain
 add-toolchain:
     rustup target add wasm32-unknown-emscripten
 
+# Gets emsdk to ./emsdk
 get-emsdk:
     git -C emsdk fetch --depth 1 https://github.com/emscripten-core/emsdk.git
     ./emsdk/emsdk install latest
@@ -31,6 +34,7 @@ get-emsdk:
     @echo fish:  . ./emsdk_env.fish
     @echo sh:    source ./emsdk_env.sh
 
+# Gets LLVM to ./llvm-project
 get-llvm:
     # release/19.x
     git init llvm-project
@@ -38,10 +42,12 @@ get-llvm:
         "$(git ls-remote https://github.com/llvm/llvm-project.git "refs/heads/release/19.x" "refs/tags/release/19.x" | head -n1 | cut -f1)"
     git -C llvm-project checkout FETCH_HEAD
 
+# Patch (...)/libclang/CIndexer.cpp for wasm
 patch-cindexer:
     patch llvm-project/clang/tools/libclang/CIndexer.cpp ./patches/CIndexer.patch
     touch llvm-project/clang/tools/libclang/CIndexer.cpp
 
+# Builds LLVM for wasm and native
 build-llvm:
     cmake -S llvm-project/llvm -B build-native -G Ninja -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release
     ninja -C build-native llvm-tblgen clang-tblgen
@@ -61,15 +67,18 @@ build-llvm:
       -DCMAKE_CXX_FLAGS="-fwasm-exceptions -sSUPPORT_LONGJMP=wasm"
     ninja -C build-wasm -t targets all
 
+# Builds libclang
 build-libclang:
     ninja -C build-wasm libclang.a
 
+# Builds autoc
 build-autoc:
     cd emsdk && . ./emsdk_env.sh \
         && cd ../ \
         && LIBCLANG_WASM_DIR=$(realpath ./build-wasm/lib) \
            cargo build --bin wasm --features wasm --release --target wasm32-unknown-emscripten
 
+# Generates dist for JavaScript
 js-dist:
     #!/bin/sh
     set -xe
@@ -84,6 +93,7 @@ js-dist:
     mv ./js/$TARBALL .
     mv ./js/*.wasm ./dist
 
+# Tests autoc.h (legacy)
 test-c:
     cc -Wall -Wextra \
         -I/usr/lib/llvm-19/include \
@@ -96,6 +106,7 @@ test-c:
     ./example
     rm ./example
 
+# Dev mode (after init)
 dev:
     touch c/autoc.c
     just build-autoc
