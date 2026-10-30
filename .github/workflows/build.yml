@@ -79,9 +79,9 @@ jobs:
                   cd ./emsdk
                   ./emsdk install latest
                   ./emsdk activate latest
-                  echo "EMSDK=$(realpath ./emsdk)" >> "$GITHUB_ENV"
-                  echo "$(realpath ./emsdk)" >> "$GITHUB_PATH"
-                  echo "$(realpath ./emsdk/upstream/emscripten)" >> "$GITHUB_PATH"
+                  echo "EMSDK=$(pwd)" >> "$GITHUB_ENV"
+                  echo "$(pwd)" >> "$GITHUB_PATH"
+                  echo "$(pwd)/upstream/emscripten" >> "$GITHUB_PATH"
 
             - name: Patch CIndexer
               run: |
