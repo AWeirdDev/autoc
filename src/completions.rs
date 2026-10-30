@@ -140,7 +140,11 @@ pub enum CodeCompletionChunk<'res> {
     VerticalSpace(ThinRef<'res, OwnedCXString>),
 }
 
-#[cfg_attr(feature = "wasm", derive(serde::Serialize))]
+#[cfg_attr(
+    feature = "wasm",
+    derive(serde::Serialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct CodeCompletion<'res> {
     /// Completion chunks.
     pub chunks: CodeCompletionChunks<'res>,

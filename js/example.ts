@@ -1,18 +1,25 @@
-// DEPRECATED for now
+import { createAutoC, CXCursorKind } from ".";
 
-// import { Doc, initModule } from ".";
-// import fs from "fs";
+const SOURCE = `#include <str`;
 
-// const source = `struct Point { int x; int y; void move69(int dx, int dy = 0); };
-// int main() { Point p; p.mo
-// }
-// `;
+const autoc = await createAutoC();
+using doc = autoc.createDoc({
+    path: "main.c",
+    source: SOURCE,
+    flags: ["-x", "c++", "-std=c++20", "--target=wasm32-wasi"],
+});
 
-// await initModule();
-
-// using doc = new Doc({
-//     source,
-//     flags: ["-x", "c++", "-std=c++20", "--target=x86_64-unknown-linux-gnu"],
-// });
-
-// console.log(doc.complete(2, 26)[0]!.chunks);
+console.log(
+    doc
+        .codeComplete(1, 13)
+        .filter(
+            (item) =>
+                ![
+                    CXCursorKind.NotImplemented,
+                    CXCursorKind.MacroDefinition,
+                ].includes(item.cursorKind),
+        )
+        .sort((a, b) => a.priority - b.priority)
+        .slice(10)
+        .map((item) => CXCursorKind[item.cursorKind]),
+);

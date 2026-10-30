@@ -1,3 +1,6 @@
+@_:
+    just -l
+
 # Initializes the environment
 init:
     @echo "=====> adding rust toolchain"
